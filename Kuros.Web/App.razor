@@ -1,6 +1,41 @@
-﻿<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@using MudBlazor
+@inject Kuros.Web.Services.AuthService AuthService
+@inject MudTheme Theme
+@implements IAsyncDisposable
+
+<MudThemeProvider Theme="@Theme" DefaultScrollbar="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+        @if (AuthService.IsAuthenticated || IsPublicPage(routeData.PageType.Name))
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        }
+        else
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(Pages.BlankLayout)" />
+        }
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthStatusChanged += StateHasChanged;
+    }
+
+    private bool IsPublicPage(string pageName)
+    {
+        var publicPages = new[] { "Home", "Login", "SignUp" };
+        return publicPages.Contains(pageName);
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        AuthService.OnAuthStatusChanged -= StateHasChanged;
+    }
+}

@@ -1,3 +1,7 @@
+using Kuros.Core.DTOs.TaskItems;
+
+namespace Kuros.Core.Interfaces;
+
 public interface ITaskItemService
 {
     Task<TaskItemResponseDto> CreateAsync(TaskItemCreateDto dto);

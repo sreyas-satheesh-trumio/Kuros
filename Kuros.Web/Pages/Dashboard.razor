@@ -1,0 +1,217 @@
+@page "/dashboard"
+@using Kuros.Web.Services
+@using Kuros.Core.DTOs.Projects
+@inject ApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <div class="dashboard-header">
+        <div>
+            <MudText Typo="Typo.h3" Class="mb-2">Projects</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Manage all your projects in one place</MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+            StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateProjectDialog">
+            New Project
+        </MudButton>
+    </div>
+
+    <MudPaper Class="pa-6 mb-6">
+        <MudTextField @bind-Value="searchTerm" Placeholder="Search projects..." Variant="Variant.Outlined"
+            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" FullWidth="true"
+            Class="search-field" />
+    </MudPaper>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <MudProgressCircular Indeterminate="true" />
+            <MudText Class="mt-4">Loading projects...</MudText>
+        </div>
+    }
+    else if (projects == null || projects.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No projects found. Create one to get started!
+        </MudAlert>
+    }
+    else
+    {
+        <div class="projects-grid">
+            @foreach (var project in FilteredProjects)
+            {
+                <MudCard Class="project-card" @onclick="@(() => Navigation.NavigateTo($"/project/{project.Id}"))">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@project.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                <MudMenuItem OnClick="@(() => OpenEditProjectDialog(project))">Edit</MudMenuItem>
+                                <MudMenuItem OnClick="@(() => DeleteProject(project.Id))">Delete</MudMenuItem>
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="project-description">
+                            @if (string.IsNullOrEmpty(project.Description))
+                            {
+                                <em>No description</em>
+                            }
+                            else
+                            {
+                                @project.Description
+                            }
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Updated: @project.UpdatedAt.ToString("MMM dd, yyyy")
+                        </MudText>
+                        <MudSpacer />
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small">
+                            View Board →
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            }
+        </div>
+    }
+</MudContainer>
+
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .search-field {
+        max-width: 400px;
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .project-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(100, 181, 246, 0.2);
+        border-color: rgba(100, 181, 246, 0.3);
+    }
+
+    .project-description {
+        line-height: 1.5;
+        color: #b0bec5;
+        word-break: break-word;
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+    }
+
+    @@media
+    (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .search-field {
+            max-width: 100%;
+        }
+    }
+</style>
+
+@code {
+    private List<ProjectResponseDto>? projects;
+    private string searchTerm = string.Empty;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        isLoading = true;
+        projects = await ApiClient.GetProjectsAsync();
+        isLoading = false;
+    }
+
+    private List<ProjectResponseDto> FilteredProjects =>
+    projects?.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+    .ToList() ?? new();
+
+    private async Task OpenCreateProjectDialog()
+    {
+        var dialog = await DialogService.ShowAsync<CreateProjectDialog>("Create New Project");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProjects();
+        }
+    }
+
+    private async Task OpenEditProjectDialog(ProjectResponseDto project)
+    {
+        var parameters = new DialogParameters { { "Project", project } };
+        var dialog = await DialogService.ShowAsync<EditProjectDialog>("Edit Project", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProjects();
+        }
+    }
+
+    private async Task DeleteProject(Guid projectId)
+    {
+        var result = await DialogService.ShowMessageBox(
+        "Delete Project",
+        "Are you sure you want to delete this project? This action cannot be undone.",
+        yesText: "Delete", noText: "Cancel");
+
+        if (result == true)
+        {
+            var success = await ApiClient.DeleteProjectAsync(projectId);
+            if (success)
+            {
+                Snackbar.Add("Project deleted successfully", Severity.Success);
+                await LoadProjects();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete project", Severity.Error);
+            }
+        }
+    }
+}

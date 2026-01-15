@@ -1,3 +1,5 @@
+namespace Kuros.Core.DTOs.Projects;
+
 public class ProjectUpdateDto
 {
     public string? Name { get; set; }

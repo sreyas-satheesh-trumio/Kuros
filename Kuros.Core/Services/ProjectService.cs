@@ -1,5 +1,9 @@
 using Kuros.Core.Data;
+using Kuros.Core.DTOs.Projects;
 using Kuros.Core.Entities;
+using Kuros.Core.Interfaces;
+
+namespace Kuros.Core.Services;
 
 public class ProjectService : IProjectService
 {
@@ -12,11 +16,12 @@ public class ProjectService : IProjectService
 
     public async Task<ProjectResponseDto> CreateAsync(ProjectCreateDto dto)
     {
-        var project = new Project { 
-            Name = dto.Name ?? "", 
-            Description = dto.Description, 
-            CreatedAt = DateTime.UtcNow, 
-            UpdatedAt = DateTime.UtcNow 
+        var project = new Project
+        {
+            Name = dto.Name ?? "",
+            Description = dto.Description,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         _db.Projects.Add(project);
         await _db.SaveChangesAsync();

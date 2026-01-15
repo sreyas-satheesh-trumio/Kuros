@@ -1,0 +1,49 @@
+@using Kuros.Core.DTOs.Projects
+@using MudBlazor
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
+            <DataAnnotationsValidator />
+
+            <MudTextField @bind-Value="createModel.Name" Label="Project Name" Variant="Variant.Outlined"
+                Class="mud-margin-bottom" FullWidth="true" Required="true" />
+
+            <MudTextField @bind-Value="createModel.Description" Label="Description" Variant="Variant.Outlined" Lines="4"
+                FullWidth="true" Placeholder="Enter project description (optional)" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Close</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@HandleCreate">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    private ProjectCreateDto createModel = new();
+    private bool isSaving = false;
+
+    private async Task HandleCreate()
+    {
+        isSaving = true;
+
+        var result = await ApiClient.CreateProjectAsync(createModel);
+
+        if (result != null)
+        {
+            Snackbar.Add("Project created successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to create project", Severity.Error);
+        }
+
+        isSaving = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

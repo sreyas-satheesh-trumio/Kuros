@@ -1,0 +1,62 @@
+@using Kuros.Core.DTOs.Projects
+@using MudBlazor
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@updateModel" OnValidSubmit="@HandleUpdate">
+            <DataAnnotationsValidator />
+
+            <MudTextField @bind-Value="updateModel.Name" Label="Project Name" Variant="Variant.Outlined"
+                Class="mud-margin-bottom" FullWidth="true" />
+
+            <MudTextField @bind-Value="updateModel.Description" Label="Description" Variant="Variant.Outlined" Lines="4"
+                FullWidth="true" Placeholder="Enter project description (optional)" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Close</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@HandleUpdate">Update</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ProjectResponseDto? Project { get; set; }
+
+    private ProjectUpdateDto updateModel = new();
+    private bool isSaving = false;
+
+    protected override void OnInitialized()
+    {
+        if (Project != null)
+        {
+            updateModel.Name = Project.Name;
+            updateModel.Description = Project.Description;
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (Project == null) return;
+
+        isSaving = true;
+
+        var result = await ApiClient.UpdateProjectAsync(Project.Id, updateModel);
+
+        if (result != null)
+        {
+            Snackbar.Add("Project updated successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to update project", Severity.Error);
+        }
+
+        isSaving = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

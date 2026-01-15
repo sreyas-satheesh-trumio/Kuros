@@ -1,5 +1,7 @@
 using Kuros.Core.Enums;
 
+namespace Kuros.Core.DTOs.TaskItems;
+
 public class TaskItemResponseDto
 {
     public Guid Id { get; set; }

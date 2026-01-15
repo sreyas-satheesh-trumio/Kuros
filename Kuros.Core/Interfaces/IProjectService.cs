@@ -1,3 +1,7 @@
+using Kuros.Core.DTOs.Projects;
+
+namespace Kuros.Core.Interfaces;
+
 public interface IProjectService
 {
     Task<ProjectResponseDto> CreateAsync(ProjectCreateDto dto);

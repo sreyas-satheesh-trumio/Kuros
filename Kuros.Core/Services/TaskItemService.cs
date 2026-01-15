@@ -1,7 +1,11 @@
 using Kuros.Core.Data;
+using Kuros.Core.DTOs.TaskItems;
 using Kuros.Core.Entities;
 using Kuros.Core.Enums;
+using Kuros.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+
+namespace Kuros.Core.Services;
 
 public class TaskItemService : ITaskItemService
 {

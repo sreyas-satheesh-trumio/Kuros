@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
+namespace Kuros.Core.DTOs.Projects;
+
 public class ProjectCreateDto
 {
     [Required(ErrorMessage = "{0} is required.")]

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Kuros.Core.DTOs.TaskItems;
+using Kuros.Core.Interfaces;
 
 [ApiController]
 [Route("api/tasks")]

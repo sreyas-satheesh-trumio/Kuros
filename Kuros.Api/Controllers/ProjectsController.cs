@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Kuros.Core.DTOs.Projects;
+using Kuros.Core.Interfaces;
 
 [ApiController]
 [Route("api/projects")]
@@ -39,7 +41,7 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectDeleteResponseDto>> Delete(Guid id)
     {
         ProjectDeleteResponseDto? res = await _service.DeleteAsync(id);
-        if (res == null) return NotFound(); 
+        if (res == null) return NotFound();
         return Ok(res);
     }
 }

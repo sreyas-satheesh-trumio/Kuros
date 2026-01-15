@@ -1,0 +1,53 @@
+@using Kuros.Core.DTOs.TaskItems
+@using MudBlazor
+@inject ApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
+            <DataAnnotationsValidator />
+
+            <MudTextField @bind-Value="createModel.Title" Label="Task Title" Variant="Variant.Outlined" FullWidth="true"
+                Required="true" Placeholder="Enter task title" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Close</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@HandleCreate">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public Guid ProjectId { get; set; }
+
+    private TaskItemCreateDto createModel = new();
+    private bool isSaving = false;
+
+    protected override void OnInitialized()
+    {
+        createModel.ProjectId = ProjectId;
+    }
+
+    private async Task HandleCreate()
+    {
+        isSaving = true;
+
+        var result = await ApiClient.CreateTaskAsync(createModel);
+
+        if (result != null)
+        {
+            Snackbar.Add("Task created successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to create task", Severity.Error);
+        }
+
+        isSaving = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

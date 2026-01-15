@@ -1,3 +1,5 @@
+namespace Kuros.Core.DTOs.Projects;
+
 public class ProjectDeleteResponseDto
 {
     public Guid Id { get; set; }
