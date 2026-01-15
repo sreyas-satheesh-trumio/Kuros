@@ -4,10 +4,10 @@ namespace Kuros.Core.Interfaces;
 
 public interface ITaskItemService
 {
-    Task<TaskItemResponseDto> CreateAsync(TaskItemCreateDto dto);
+    Task<TaskItemResponseDto?> CreateAsync(TaskItemCreateDto dto);
     Task<IEnumerable<TaskItemResponseDto>> GetByProjectAsync(Guid projectId);
     Task<TaskItemResponseDto?> GetByIdAsync(Guid id);
-    Task UpdateAsync(Guid id, TaskItemUpdateDto dto);
-    Task MoveAsync(Guid id, TaskItemMoveDto status);
-    Task DeleteAsync(Guid id);
+    Task<TaskItemResponseDto?> UpdateAsync(Guid id, TaskItemUpdateDto dto);
+    Task<TaskItemMoveResponseDto?> MoveAsync(Guid id, TaskItemMoveDto status);
+    Task<TaskItemResponseDto?> DeleteAsync(Guid id);
 }
