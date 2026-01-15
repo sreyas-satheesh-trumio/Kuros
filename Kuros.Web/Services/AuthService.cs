@@ -9,7 +9,6 @@ public class AuthService
 
     public bool Login(string username, string password)
     {
-        // Hardcoded credentials
         if (username == "sreyas@gmail.com" && password == "sreyas@123")
         {
             _isAuthenticated = true;

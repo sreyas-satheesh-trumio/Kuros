@@ -1,171 +1,110 @@
 @page "/project/{ProjectId:guid}"
+
 @using Kuros.Core.DTOs.Projects
 @using Kuros.Core.DTOs.TaskItems
 @using Kuros.Core.Enums
 @inject ApiClient ApiClient
-@inject IDialogService DialogService
-@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-8">
+<div class="project-wrapper">
     <div class="project-header">
-        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
-            OnClick="@(() => Navigation.NavigateTo("/dashboard"))">
-            Back to Projects
-        </MudButton>
-        <div>
-            <MudText Typo="Typo.h3" Class="mb-2">@project?.Name</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">@project?.Description</MudText>
+        <button class="btn-back" @onclick="@(() => Navigation.NavigateTo("/dashboard"))">← Back</button>
+        <div class="project-info">
+            <h2>@project?.Name</h2>
+            <p>@project?.Description</p>
         </div>
         <div class="project-actions">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
-                StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateTaskDialog">
-                New Task
-            </MudButton>
-            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Large">
-                <MudMenuItem OnClick="@OpenEditProjectDialog">Edit Project</MudMenuItem>
-                <MudMenuItem OnClick="@DeleteProject">Delete Project</MudMenuItem>
-            </MudMenu>
+            <button class="btn btn-primary" @onclick="OpenCreateTaskDialog">+ New Task</button>
+            <div class="menu-dropdown">
+                <button class="menu-btn">⋮</button>
+                <div class="dropdown-content">
+                    <a @onclick="OpenEditProjectDialog">Edit Project</a>
+                    <a @onclick="DeleteProject" style="color: #ff6b6b;">Delete Project</a>
+                </div>
+            </div>
         </div>
     </div>
 
     @if (isLoading)
     {
         <div class="loading-container">
-            <MudProgressCircular Indeterminate="true" />
-            <MudText Class="mt-4">Loading board...</MudText>
+            <p>Loading board...</p>
         </div>
     }
     else
     {
-        <div class="kanban-board">
+        <div class="kanban-board" @ondragover:preventDefault @ondrop="HandleDrop">
             @foreach (var status in TaskStatuses)
             {
-                <div class="kanban-column" style="@GetColumnStyle(status)">
+                <div class="kanban-column" 
+                    style="@GetColumnStyle(status)"
+                    @ondragover:preventDefault
+                    @ondrop="@(() => HandleDropOnColumn(status))"
+                    @ondragenter:preventDefault>
                     <div class="column-header">
-                        <MudText Typo="Typo.h6" Class="column-title">@GetStatusLabel(status)</MudText>
-                        <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(status)">
-                            @GetTasksForStatus(status).Count
-                        </MudChip>
+                        <h3 class="column-title">@GetStatusLabel(status)</h3>
+                        <span class="status-count">@GetTasksForStatus(status).Count</span>
                     </div>
-
-                    <div class="column-tasks">
+                    <div class="column-tasks" @key="status">
                         @foreach (var task in GetTasksForStatus(status))
                         {
-                            <MudCard Class="task-card">
-                                <MudCardContent>
-                                    <MudText Typo="Typo.body2" Class="task-title">@task.Title</MudText>
-                                </MudCardContent>
-                                <MudCardActions>
-                                    <MudMenu Size="Size.Small" Icon="@Icons.Material.Filled.Edit">
-                                        <MudMenuItem OnClick="@(() => OpenEditTaskDialog(task))">Edit</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => DeleteTask(task.Id))">Delete</MudMenuItem>
-                                        <MudDivider />
-                                        @foreach (var moveStatus in TaskStatuses)
-                                        {
-                                            if (moveStatus != task.TaskItemStatus)
-                                            {
-                                                <MudMenuItem OnClick="@(() => MoveTask(task.Id, moveStatus))">
-                                                    Move to @GetStatusLabel(moveStatus)
-                                                </MudMenuItem>
-                                            }
-                                        }
-                                    </MudMenu>
-                                </MudCardActions>
-                            </MudCard>
+                            <div class="task-card" 
+                                draggable="true"
+                                @ondragstart="@(() => HandleDragStart(task.Id))"
+                                @ondragend="HandleDragEnd">
+                                <div>
+                                    <div class="task-header">
+                                        <p class="task-title">@task.Title</p>
+                                        <div class="task-menu">
+                                            <button class="task-menu-btn" @onclick:stopPropagation
+                                                @onclick="@(async () => await OpenEditTaskDialog(task))">✎</button>
+                                            <button class="task-menu-btn delete-btn" @onclick:stopPropagation
+                                                @onclick="@(async () => await DeleteTask(task.Id))">✕</button>
+                                        </div>
+                                    </div>
+                                    <div class="desc">
+                                        <small>@task.Description</small>
+                                    </div>
+                                    <div class="meta">
+                                        <small>Created: @task.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                        <small>Updated: @task.UpdatedAt.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     </div>
                 </div>
             }
         </div>
     }
-</MudContainer>
+</div>
 
-<style>
-    .project-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 20px;
-        margin-bottom: 40px;
-        flex-wrap: wrap;
-    }
+@if (showCreateDialog)
+{
+    <div class="modal-overlay" @onclick="CloseCreateDialog">
+        <div class="modal-content" @onclick:stopPropagation>
+            <CreateTaskDialog ProjectId="ProjectId" OnClose="CloseCreateDialog" OnSuccess="HandleTaskCreated" />
+        </div>
+    </div>
+}
 
-    .project-actions {
-        display: flex;
-        gap: 10px;
-    }
+@if (showEditTaskDialog && editingTask != null)
+{
+    <div class="modal-overlay" @onclick="CloseEditTaskDialog">
+        <div class="modal-content" @onclick:stopPropagation>
+            <EditTaskDialog Task="editingTask" OnClose="CloseEditTaskDialog" OnSuccess="HandleTaskUpdated" />
+        </div>
+    </div>
+}
 
-    .kanban-board {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        min-height: 600px;
-    }
-
-    .kanban-column {
-        border-radius: 8px;
-        padding: 16px;
-        min-height: 600px;
-        border: 2px solid;
-    }
-
-    .column-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid;
-    }
-
-    .column-title {
-        margin: 0;
-        flex: 1;
-    }
-
-    .column-tasks {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .task-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        cursor: move;
-        transition: all 0.2s ease;
-    }
-
-    .task-card:hover {
-        box-shadow: 0 4px 12px rgba(100, 181, 246, 0.15);
-        border-color: rgba(100, 181, 246, 0.3);
-    }
-
-    .task-title {
-        word-break: break-word;
-        color: #fff;
-    }
-
-    .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 600px;
-    }
-
-    @@media
-    (max-width: 768px) {
-        .project-header {
-            flex-direction: column;
-        }
-
-        .kanban-board {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
+@if (showEditProjectDialog && project != null)
+{
+    <div class="modal-overlay" @onclick="CloseEditProjectDialog">
+        <div class="modal-content" @onclick:stopPropagation>
+            <EditProjectDialog Project="project" OnClose="CloseEditProjectDialog" OnSuccess="HandleProjectUpdated" />
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -174,15 +113,19 @@
     private ProjectResponseDto? project;
     private List<TaskItemResponseDto>? tasks;
     private bool isLoading = true;
+    private bool showCreateDialog = false;
+    private bool showEditTaskDialog = false;
+    private bool showEditProjectDialog = false;
+    private TaskItemResponseDto? editingTask;
 
     private readonly TaskItemStatus[] TaskStatuses =
     {
-TaskItemStatus.BackLog,
-TaskItemStatus.ToDo,
-TaskItemStatus.InDevelopment,
-TaskItemStatus.CodeReview,
-TaskItemStatus.Done
-};
+        TaskItemStatus.BackLog,
+        TaskItemStatus.ToDo,
+        TaskItemStatus.InDevelopment,
+        TaskItemStatus.CodeReview,
+        TaskItemStatus.Done
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,16 +160,6 @@ TaskItemStatus.Done
         _ => status.ToString()
     };
 
-    private Color GetStatusColor(TaskItemStatus status) => status switch
-    {
-        TaskItemStatus.BackLog => Color.Default,
-        TaskItemStatus.ToDo => Color.Warning,
-        TaskItemStatus.InDevelopment => Color.Info,
-        TaskItemStatus.CodeReview => Color.Secondary,
-        TaskItemStatus.Done => Color.Success,
-        _ => Color.Default
-    };
-
     private string GetColumnStyle(TaskItemStatus status) => status switch
     {
         TaskItemStatus.BackLog => "background: rgba(158, 158, 158, 0.1); border-color: #9e9e9e;",
@@ -237,101 +170,133 @@ TaskItemStatus.Done
         _ => ""
     };
 
-    private async Task OpenCreateTaskDialog()
+    private void OpenCreateTaskDialog()
     {
-        var parameters = new DialogParameters { { "ProjectId", ProjectId } };
-        var dialog = await DialogService.ShowAsync<CreateTaskDialog>("Create New Task", parameters);
-        var result = await dialog.Result;
+        showCreateDialog = true;
+    }
 
-        if (!result.Canceled)
-        {
-            await LoadTasks();
-        }
+    private void CloseCreateDialog()
+    {
+        showCreateDialog = false;
+    }
+
+    private async Task HandleTaskCreated(TaskItemResponseDto task)
+    {
+        showCreateDialog = false;
+        await LoadTasks();
     }
 
     private async Task OpenEditTaskDialog(TaskItemResponseDto task)
     {
-        var parameters = new DialogParameters { { "Task", task } };
-        var dialog = await DialogService.ShowAsync<EditTaskDialog>("Edit Task", parameters);
-        var result = await dialog.Result;
+        editingTask = task;
+        showEditTaskDialog = true;
+    }
 
-        if (!result.Canceled)
-        {
-            await LoadTasks();
-        }
+    private void CloseEditTaskDialog()
+    {
+        showEditTaskDialog = false;
+        editingTask = null;
+    }
+
+    private async Task HandleTaskUpdated(TaskItemResponseDto task)
+    {
+        showEditTaskDialog = false;
+        editingTask = null;
+        await LoadTasks();
     }
 
     private async Task OpenEditProjectDialog()
     {
-        if (project == null) return;
+        showEditProjectDialog = true;
+    }
 
-        var parameters = new DialogParameters { { "Project", project } };
-        var dialog = await DialogService.ShowAsync<EditProjectDialog>("Edit Project", parameters);
-        var result = await dialog.Result;
+    private void CloseEditProjectDialog()
+    {
+        showEditProjectDialog = false;
+    }
 
-        if (!result.Canceled)
-        {
-            await LoadProject();
-        }
+    private async Task HandleProjectUpdated(ProjectResponseDto updatedProject)
+    {
+        showEditProjectDialog = false;
+        await LoadProject();
     }
 
     private async Task DeleteProject()
     {
-        var result = await DialogService.ShowMessageBox(
-        "Delete Project",
-        "Are you sure you want to delete this project? This action cannot be undone.",
-        yesText: "Delete", noText: "Cancel");
-
-        if (result == true)
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this project? This action cannot be undone."))
         {
             var success = await ApiClient.DeleteProjectAsync(ProjectId);
             if (success)
             {
-                Snackbar.Add("Project deleted successfully", Severity.Success);
                 Navigation.NavigateTo("/dashboard");
-            }
-            else
-            {
-                Snackbar.Add("Failed to delete project", Severity.Error);
             }
         }
     }
 
     private async Task DeleteTask(Guid taskId)
     {
-        var result = await DialogService.ShowMessageBox(
-        "Delete Task",
-        "Are you sure you want to delete this task?",
-        yesText: "Delete", noText: "Cancel");
-
-        if (result == true)
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this task?"))
         {
             var success = await ApiClient.DeleteTaskAsync(taskId);
             if (success)
             {
-                Snackbar.Add("Task deleted successfully", Severity.Success);
                 await LoadTasks();
-            }
-            else
-            {
-                Snackbar.Add("Failed to delete task", Severity.Error);
             }
         }
     }
 
-    private async Task MoveTask(Guid taskId, TaskItemStatus newStatus)
-    {
-        var moveDto = new TaskItemMoveDto { Status = newStatus };
-        var success = await ApiClient.MoveTaskAsync(taskId, moveDto);
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = null!;
 
-        if (success)
+    private Guid? draggedTaskId;
+    private ElementReference kanbanBoardRef;
+
+    private void HandleDragStart(Guid taskId)
+    {
+        draggedTaskId = taskId;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleDragEnd()
+    {
+        draggedTaskId = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleDrop()
+    {
+        // Handle drops on the board itself (optional)
+        await Task.CompletedTask;
+    }
+
+    private async Task HandleDropOnColumn(TaskItemStatus targetStatus)
+    {
+        if (draggedTaskId.HasValue)
         {
-            Snackbar.Add($"Task moved to {GetStatusLabel(newStatus)}", Severity.Success);
-            await LoadTasks();
+            await MoveTaskAsync(draggedTaskId.Value, targetStatus);
+            draggedTaskId = null;
         }
-        else
+    }
+
+    // Enhanced MoveTaskAsync with better UX feedback
+    private async Task MoveTaskAsync(Guid taskId, TaskItemStatus newStatus)
+    {
+        // Show loading state for specific task (optional enhancement)
+        isLoading = true;
+        
+        try
         {
-            Snackbar.Add("Failed to move task", Severity.Error);
+            var moveDto = new TaskItemMoveDto { Status = newStatus };
+            var success = await ApiClient.MoveTaskAsync(taskId, moveDto);
+            if (success)
+            {
+                await LoadTasks(); // Refresh all tasks
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 }

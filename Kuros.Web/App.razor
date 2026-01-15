@@ -1,12 +1,5 @@
-﻿@using MudBlazor
-@inject Kuros.Web.Services.AuthService AuthService
-@inject MudTheme Theme
+﻿@inject Kuros.Web.Services.AuthService AuthService
 @implements IAsyncDisposable
-
-<MudThemeProvider Theme="@Theme" DefaultScrollbar="true" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
 
 <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">

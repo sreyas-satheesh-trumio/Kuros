@@ -1,30 +1,49 @@
 @using Kuros.Core.DTOs.TaskItems
-@using MudBlazor
 @inject ApiClient ApiClient
-@inject ISnackbar Snackbar
 
-<MudDialog>
-    <DialogContent>
-        <EditForm Model="@updateModel" OnValidSubmit="@HandleUpdate">
-            <DataAnnotationsValidator />
-            <MudValidationSummary />
+<div class="dialog-content">
+    <h3>Edit Task</h3>
+    <EditForm Model="@updateModel" OnValidSubmit="@HandleUpdate">
+        <DataAnnotationsValidator />
 
-            <MudTextField @bind-Value="updateModel.Title" Label="Task Title" Variant="Variant.Outlined" FullWidth="true"
-                Required="true" Placeholder="Enter task title" />
-        </EditForm>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Close</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@HandleUpdate">Update</MudButton>
-    </DialogActions>
-</MudDialog>
+        <div class="form-group">
+            <label for="title">Task Title</label>
+            <InputText id="title" @bind-Value="updateModel.Title" class="form-control" required
+                placeholder="Enter task title" />
+                <br>
+            <label for="description">Task Description</label>
+            <InputTextArea id="description" @bind-Value="updateModel.Description" class="form-control" rows="4"
+                placeholder="Enter task description (optional)" />
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@isSaving">Close</button>
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span>Updating...</span>
+                }
+                else
+                {
+
+                    <span>Update</span>
+                }
+            </button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public TaskItemResponseDto? Task { get; set; }
 
     private TaskItemUpdateDto updateModel = new();
     private bool isSaving = false;
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<TaskItemResponseDto> OnSuccess { get; set; }
 
     protected override void OnInitialized()
     {
@@ -44,16 +63,15 @@
 
         if (result != null)
         {
-            Snackbar.Add("Task updated successfully!", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        else
-        {
-            Snackbar.Add("Failed to update task", Severity.Error);
+            await OnSuccess.InvokeAsync(result);
         }
 
         isSaving = false;
+        await OnClose.InvokeAsync();
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    private async Task Cancel()
+    {
+        await OnClose.InvokeAsync();
+    }
 }

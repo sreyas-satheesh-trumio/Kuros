@@ -1,30 +1,50 @@
+@namespace Kuros.Web.Components
+
 @using Kuros.Core.DTOs.Projects
-@using MudBlazor
 @inject ApiClient ApiClient
-@inject ISnackbar Snackbar
 
-<MudDialog>
-    <DialogContent>
-        <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
-            <DataAnnotationsValidator />
+<div class="dialog-content">
+    <h3>Create Project</h3>
+    <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
+        <DataAnnotationsValidator />
 
-            <MudTextField @bind-Value="createModel.Name" Label="Project Name" Variant="Variant.Outlined"
-                Class="mud-margin-bottom" FullWidth="true" Required="true" />
+        <div class="form-group">
+            <label for="name">Project Name</label>
+            <InputText id="name" @bind-Value="createModel.Name" class="form-control" required />
+        </div>
 
-            <MudTextField @bind-Value="createModel.Description" Label="Description" Variant="Variant.Outlined" Lines="4"
-                FullWidth="true" Placeholder="Enter project description (optional)" />
-        </EditForm>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Close</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@HandleCreate">Create</MudButton>
-    </DialogActions>
-</MudDialog>
+        <div class="form-group">
+            <label for="description">Description (Optional)</label>
+            <InputTextArea id="description" @bind-Value="createModel.Description" class="form-control" rows="4"
+                placeholder="Enter project description (optional)" />
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@isSaving">Close</button>
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span>Creating...</span>
+                }
+                else
+                {
+
+                    <span>Create</span>
+                }
+            </button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private ProjectCreateDto createModel = new();
     private bool isSaving = false;
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<ProjectResponseDto> OnSuccess { get; set; }
 
     private async Task HandleCreate()
     {
@@ -34,16 +54,15 @@
 
         if (result != null)
         {
-            Snackbar.Add("Project created successfully!", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        else
-        {
-            Snackbar.Add("Failed to create project", Severity.Error);
+            await OnSuccess.InvokeAsync(result);
         }
 
         isSaving = false;
+        await OnClose.InvokeAsync();
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    private async Task Cancel()
+    {
+        await OnClose.InvokeAsync();
+    }
 }

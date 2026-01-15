@@ -1,7 +1,6 @@
 @page "/signup"
 @using Kuros.Web.Services
 @inject NavigationManager Navigation
-@inject ISnackbar Snackbar
 
 <div class="auth-container">
     <div class="auth-card">
@@ -13,107 +12,50 @@
         <EditForm Model="@signupModel" OnValidSubmit="@HandleSignUp" class="auth-form">
             <DataAnnotationsValidator />
 
-            <MudTextField @bind-Value="signupModel.FullName" Label="Full Name" Variant="Variant.Outlined"
-                Class="mud-margin-bottom" FullWidth="true" />
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <InputText id="fullname" @bind-Value="signupModel.FullName" class="form-control" />
+            </div>
 
-            <MudTextField @bind-Value="signupModel.Email" Label="Email" Variant="Variant.Outlined"
-                Class="mud-margin-bottom" FullWidth="true" InputType="InputType.Email" />
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="signupModel.Email" class="form-control" type="email" />
+            </div>
 
-            <MudTextField @bind-Value="signupModel.Password" Label="Password" Variant="Variant.Outlined"
-                Class="mud-margin-bottom" FullWidth="true" InputType="InputType.Password" />
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" @bind-Value="signupModel.Password" class="form-control" type="password" />
+            </div>
 
-            <MudTextField @bind-Value="signupModel.ConfirmPassword" Label="Confirm Password" Variant="Variant.Outlined"
-                Class="mud-margin-bottom" FullWidth="true" InputType="InputType.Password" />
+            <div class="form-group">
+                <label for="confirm">Confirm Password</label>
+                <InputText id="confirm" @bind-Value="signupModel.ConfirmPassword" class="form-control"
+                    type="password" />
+            </div>
 
             <div class="auth-button-group">
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                    FullWidth="true" Size="Size.Large" Disabled="isLoading">
+                <button type="submit" class="btn btn-primary" disabled="@isLoading" style="width: 100%; padding: 12px;">
                     @if (isLoading)
                     {
-                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                        <MudText Class="ms-2">Creating account...</MudText>
+                        <span>Creating account...</span>
                     }
                     else
                     {
                         <span>Sign Up</span>
                     }
-                </MudButton>
+                </button>
             </div>
         </EditForm>
 
         <div class="auth-footer">
             <p>Already have an account?
-                <MudLink Href="/login">Sign in here</MudLink>
+                <a href="/login">Sign in here</a>
             </p>
         </div>
     </div>
 </div>
 
-<style>
-    .auth-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-        padding: 20px;
-    }
 
-    .auth-card {
-        background: rgba(30, 30, 46, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 40px;
-        width: 100%;
-        max-width: 400px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .auth-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .auth-header h1 {
-        margin: 0;
-        color: #fff;
-        font-size: 1.8rem;
-    }
-
-    .auth-header p {
-        color: #b0bec5;
-        margin: 10px 0 0;
-    }
-
-    .auth-form {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .auth-button-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 20px;
-        color: #b0bec5;
-    }
-
-    .auth-footer p {
-        margin: 0;
-    }
-
-    @@media
-    (max-width: 768px) {
-        .auth-card {
-            padding: 30px 20px;
-        }
-    }
-</style>
 
 @code {
     private SignupModel signupModel = new();
@@ -123,14 +65,12 @@
     {
         if (signupModel.Password != signupModel.ConfirmPassword)
         {
-            Snackbar.Add("Passwords do not match", Severity.Error);
             return;
         }
 
         isLoading = true;
         await Task.Delay(500);
 
-        Snackbar.Add("Account created successfully! Please login.", Severity.Success);
         await Task.Delay(1500);
         Navigation.NavigateTo("/login");
         isLoading = false;

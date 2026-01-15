@@ -14,139 +14,29 @@
 
         <div class="landing-features">
             <div class="feature-item">
-                <MudIcon Icon="@Icons.Material.Filled.Dashboard" class="feature-icon"/>
+                <div class="feature-icon">📊</div>
                 <h3>Manage Projects</h3>
                 <p>Create and organize multiple projects</p>
             </div>
             <div class="feature-item">
-                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" class="feature-icon"/>
+                <div class="feature-icon">✓</div>
                 <h3>Track Tasks</h3>
                 <p>Keep track of all your tasks and progress</p>
             </div>
             <div class="feature-item">
-                <MudIcon Icon="@Icons.Material.Filled.ViewKanban" class="feature-icon"/>
+                <div class="feature-icon">📋</div>
                 <h3>Kanban Board</h3>
                 <p>Visualize workflow with kanban boards</p>
             </div>
         </div>
 
         <div class="landing-buttons">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" 
-                       OnClick="@(() => Navigation.NavigateTo("/login"))"
-                       Class="landing-button">
+            <button class="landing-button btn-primary" @onclick="@(() => Navigation.NavigateTo("/login"))">
                 Login
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large"
-                       OnClick="@(() => Navigation.NavigateTo("/signup"))"
-                       Class="landing-button">
+            </button>
+            <button class="landing-button btn-secondary" @onclick="@(() => Navigation.NavigateTo("/signup"))">
                 Sign Up
-            </MudButton>
+            </button>
         </div>
     </div>
 </div>
-
-<style>
-    .landing-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-        padding: 20px;
-    }
-
-    .landing-content {
-        text-align: center;
-        color: #fff;
-        max-width: 800px;
-    }
-
-    .landing-header {
-        margin-bottom: 60px;
-    }
-
-    .landing-title {
-        font-size: 4rem;
-        font-weight: bold;
-        margin: 0;
-        color: #64b5f6;
-    }
-
-    .landing-subtitle {
-        font-size: 1.5rem;
-        margin: 10px 0;
-        color: #b0bec5;
-    }
-
-    .landing-description {
-        font-size: 1.1rem;
-        color: #90a4ae;
-        margin: 20px 0;
-    }
-
-    .landing-features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 30px;
-        margin-bottom: 50px;
-    }
-
-    .feature-item {
-        padding: 30px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .feature-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateY(-5px);
-    }
-
-    .feature-icon {
-        font-size: 3rem;
-        color: #64b5f6;
-        margin-bottom: 15px;
-    }
-
-    .feature-item h3 {
-        margin: 15px 0 10px;
-        color: #fff;
-    }
-
-    .feature-item p {
-        color: #b0bec5;
-        margin: 0;
-    }
-
-    .landing-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .landing-button {
-        padding: 12px 40px;
-        font-size: 1.1rem;
-        min-width: 150px;
-    }
-
-    @@media (max-width: 768px) {
-        .landing-title {
-            font-size: 2.5rem;
-        }
-
-        .landing-subtitle {
-            font-size: 1.2rem;
-        }
-
-        .landing-features {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-@code {
-}

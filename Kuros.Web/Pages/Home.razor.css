@@ -1,0 +1,140 @@
+.landing-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(
+        135deg,
+        #09090b 0%,
+        #18181b 100%
+    );
+    padding: 24px;
+}
+
+.landing-content {
+    text-align: center;
+    color: #e4e4e7;
+    max-width: 900px;
+}
+
+.landing-header {
+    margin-bottom: 64px;
+}
+
+.landing-title {
+    font-size: 4rem;
+    font-weight: 700;
+    margin: 0;
+    color: #fafafa;
+    letter-spacing: -0.03em;
+}
+
+.landing-subtitle {
+    font-size: 1.5rem;
+    margin: 12px 0;
+    color: #d4d4d8;
+}
+
+.landing-description {
+    font-size: 1.1rem;
+    color: #a1a1aa;
+    margin: 24px auto 0;
+    max-width: 640px;
+    line-height: 1.6;
+}
+
+.landing-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 32px;
+    margin-bottom: 56px;
+}
+
+.feature-item {
+    padding: 32px;
+    background: rgba(24, 24, 27, 0.8);
+    border-radius: 14px;
+    border: 1px solid rgba(63, 63, 70, 0.4);
+    transition: all 0.25s ease;
+    backdrop-filter: blur(6px);
+}
+
+.feature-item:hover {
+    background: rgba(39, 39, 42, 0.9);
+    transform: translateY(-4px);
+    border-color: rgba(113, 113, 122, 0.5);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: #fafafa;
+    margin-bottom: 16px;
+    opacity: 0.9;
+}
+
+.feature-item h3 {
+    margin: 16px 0 10px;
+    color: #fafafa;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.feature-item p {
+    color: #a1a1aa;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.landing-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.landing-button {
+    padding: 12px 42px;
+    font-size: 1rem;
+    min-width: 160px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #fafafa;
+    color: #09090b;
+    border: 1px solid #fafafa;
+}
+
+.btn-primary:hover {
+    background-color: #e4e4e7;
+    border-color: #e4e4e7;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #fafafa;
+    border: 1px solid rgba(113, 113, 122, 0.6);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(39, 39, 42, 0.8);
+    border-color: rgba(161, 161, 170, 0.8);
+}
+
+@media (max-width: 768px) {
+    .landing-title {
+        font-size: 2.6rem;
+    }
+
+    .landing-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .landing-features {
+        grid-template-columns: 1fr;
+    }
+}

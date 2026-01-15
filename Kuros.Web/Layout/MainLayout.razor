@@ -2,36 +2,32 @@
 @using Kuros.Web.Services
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject Initialization initi
 
-<MudLayout>
-    <MudAppBar Elevation="1" Class="app-bar">
-        <MudText Typo="Typo.h6" Class="app-title">Kuros</MudText>
-        <MudSpacer />
-        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@Logout">
-            Logout
-        </MudButton>
-    </MudAppBar>
-    <MudMainContent>
-        @Body
-    </MudMainContent>
-</MudLayout>
 
-<style>
-    .app-bar {
-        background: linear-gradient(90deg, #1e1e2e 0%, #2d2d44 100%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .app-title {
-        color: #64b5f6;
-        font-weight: bold;
-    }
-</style>
+<div class="main-layout">
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">Kuros</h1>
+            <button class="logout-btn" @onclick="Logout">Logout</button>
+        </div>
+    </header>
+    <main class="main-content">
+        <div @@onclick="initi.HandleMainLayoutClickEvent">
+            @Body
+        </div>
+    </main>
+</div>
 
 @code {
     private void Logout()
     {
         AuthService.Logout();
         Navigation.NavigateTo("/");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await initi.InitializeTheme(); 
     }
 }
