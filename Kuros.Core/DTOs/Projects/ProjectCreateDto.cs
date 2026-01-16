@@ -10,4 +10,6 @@ public class ProjectCreateDto
     [MaxLength(100, ErrorMessage = "{0} cannot exceed 100 characters.")]
     public string? Name { get; set; }
     public string Description { get; set; } = string.Empty;
+    public int? HourlyPayRate { get; set; }
+    public Guid? ClientId { get; set; }
 }

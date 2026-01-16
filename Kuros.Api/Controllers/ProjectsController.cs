@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Kuros.Core.DTOs.Projects;
 using Kuros.Core.Interfaces;
+using System.Net;
 
 [ApiController]
 [Route("api/projects")]
@@ -14,12 +15,19 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(ProjectCreateDto dto)
-        => Ok(await _service.CreateAsync(dto));
+    public async Task<ActionResult<ProjectResponseDto>> Create(ProjectCreateDto dto)
+    {
+        var res = await _service.CreateAsync(dto);
+        return Ok(res);
+    }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
-        => Ok(await _service.GetAllAsync());
+    public async Task<ActionResult<List<ProjectResponseDto>>> GetAll()
+    {
+        Guid userId = AuthService.CurrentUserId;
+        var res = await _service.GetAllAsync(userId);
+        return Ok(res);
+    }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProjectResponseDto>> Get(Guid id)

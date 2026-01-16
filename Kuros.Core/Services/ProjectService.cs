@@ -2,6 +2,7 @@ using Kuros.Core.Data;
 using Kuros.Core.DTOs.Projects;
 using Kuros.Core.Entities;
 using Kuros.Core.Interfaces;
+using Microsoft.Data.SqlClient;
 
 namespace Kuros.Core.Services;
 
@@ -14,31 +15,49 @@ public class ProjectService : IProjectService
         _db = db;
     }
 
-    public async Task<ProjectResponseDto> CreateAsync(ProjectCreateDto dto)
+    public async Task<ProjectCreateResponseDto?> CreateAsync(ProjectCreateDto dto)
     {
+        var userDetails = await _db.Users.FindAsync(AuthService.CurrentUserId);
+
+        if (userDetails == null) return null;
+
         var project = new Project
         {
             Name = dto.Name ?? "",
             Description = dto.Description,
+            HourlyPayRate = dto.HourlyPayRate ?? userDetails?.HourlyPayRate ?? 0,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UserId = userDetails?.Id ?? Guid.Empty,
+            ClientId = dto.ClientId
         };
         _db.Projects.Add(project);
         await _db.SaveChangesAsync();
 
-        return new ProjectResponseDto
+        string clientName = "";
+        if (dto.ClientId.HasValue)
+        {
+            var client = await _db.Clients.FindAsync(dto.ClientId);
+            clientName = client?.Name ?? "";
+        }
+
+        return new ProjectCreateResponseDto
         {
             Id = project.Id,
             Name = project.Name,
             Description = project.Description,
             CreatedAt = project.CreatedAt,
-            UpdatedAt = project.UpdatedAt
+            UpdatedAt = project.UpdatedAt,
+            HourlyPayRate = project.HourlyPayRate,
+            ClientName = clientName,
         };
     }
 
-    public async Task<IEnumerable<ProjectResponseDto>> GetAllAsync()
+    public async Task<IEnumerable<ProjectResponseDto>> GetAllAsync(Guid userId)
     {
-        return _db.Projects
+        var allProjects = _db.Projects
+            .Where(p => p.UserId == userId)
+            .OrderByDescending(p => p.CreatedAt)
             .Select(p => new ProjectResponseDto
             {
                 Id = p.Id,
@@ -47,8 +66,9 @@ public class ProjectService : IProjectService
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt
             })
-            .OrderByDescending(p => p.CreatedAt)
             .ToList();
+
+        return allProjects;
     }
 
     public async Task<ProjectResponseDto?> GetByIdAsync(Guid id)

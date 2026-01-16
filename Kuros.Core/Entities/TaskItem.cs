@@ -10,6 +10,7 @@ public class TaskItem
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public TaskItemStatus TaskItemStatus { get; set; } = TaskItemStatus.BackLog;
+    public double EstimatedHours { get; set; }
 
     public Guid ProjectId { get; set; }
     public Project? Project { get; set; }

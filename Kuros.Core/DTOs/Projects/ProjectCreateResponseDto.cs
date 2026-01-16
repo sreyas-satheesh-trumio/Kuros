@@ -1,6 +1,6 @@
 namespace Kuros.Core.DTOs.Projects;
 
-public class ProjectResponseDto
+public class ProjectCreateResponseDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;
@@ -9,8 +9,4 @@ public class ProjectResponseDto
     public DateTime UpdatedAt { get; set; }
     public int HourlyPayRate { get; set; }
     public string? ClientName { get; set; }
-    public int TotalTasks { get; set; }
-    public int CompletedTasks { get; set; }
-    public int TotalPay { get; set; }
-    public int RemainingPay { get; set; }
 }
